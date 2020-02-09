@@ -1,0 +1,20 @@
+import * as dynamoDbLib from './libs/dynamodb-lib'
+import { success, failure } from './libs/response-lib'
+
+export async function main (event) {  
+  const params = {
+    TableName: process.env.tableName,
+    // 'Key' defines the partition key and sort key of the item to be updated
+    Key: {
+      userId: event.requestContext.identity.cognitoIdentityId,
+      noteId: event.pathParameters.id
+    }
+  }
+
+  try {
+    await dynamoDbLib.call('delete', params)
+    return success({ status: true })
+  } catch (e) {
+    return failure({ status: false })
+  }
+}
