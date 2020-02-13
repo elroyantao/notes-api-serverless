@@ -50,7 +50,7 @@ functions:
           path: notes
           method: post
           cors: true
-          authoriser: aws_iam
+          authorizer: aws_iam
 
   get:
     handler: get.main
