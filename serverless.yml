@@ -1,5 +1,5 @@
 # NOTE: update this with your service name
-service: notes-app-api
+service: notes-app-2-api
 
 # Create an optimized package for our functions 
 package:
@@ -11,6 +11,11 @@ plugins:
   - serverless-dotenv-plugin # Load .env as environment variables
 
 custom:
+  # Our stage is based on what is passed in when running serverless
+  # commands. Or fallsback to what we have set in the provider section.
+  stage: ${opt:stage, self:provider.stage}
+  # Set the table name here so we can use it while testing locally
+  tableName: ${self:custom.stage}-notes
   bundle:
     linting: false
 
@@ -25,7 +30,7 @@ provider:
   # commit your .env.
   #
   environment:
-    tableName: ${env:TABLE_NAME}
+    tableName: ${self:custom.tableName}
     stripeSecretKey: ${env:STRIPE_SECRET_KEY}
 
   # 'iamRoleStatements' defines the permission policy for the Lambda function.
@@ -40,7 +45,8 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:eu-west-1:619121986205:table/notes"
+      Resource:
+        - "Fn::GetAtt": [ NotesTable, Arn ]
 
 functions:
   create:
@@ -102,3 +108,10 @@ functions:
 resources:
   # API Gateway Errors
   - ${file(resources/api-gateway-errors.yml)}
+  # DynamoDB
+  - ${file(resources/dynamodb-table.yml)}
+  # S3
+  - ${file(resources/s3-bucket.yml)}
+  # Cognito
+  - ${file(resources/cognito-user-pool.yml)}
+  - ${file(resources/cognito-identity-pool.yml)}
